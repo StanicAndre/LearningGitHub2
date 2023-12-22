@@ -1,0 +1,41 @@
+name: CI Workflow
+
+on:
+  push
+
+jobs:
+  build:
+    name: Build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+  test:
+    needs: build    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    name: Run Tests on ${{ matrix.os }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Upload build artifacts
+        uses: ./.github/actions/upload-artifact
+        with:
+          name: build
+          path: ./README.md
+
+  deploy:
+    name: Deploy
+    runs-on: windows-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3     
+      - name: Download build artifacts
+        uses: ./.github/actions/download-artifact
+        with:
+          name: build
+  
